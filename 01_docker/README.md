@@ -162,10 +162,10 @@ CMD ["java", "Main"]
    строка `AS build`)
 1. Мы снова берём образ openjdk:11 и в него копируем файл Main.class, который у нас хранится в stage `build`
 
-Таким образом получается, что в итоговом образе у нас будет всё, что есть в `openjdk:11` + файл `Main.class` +
+Таким образом получается, что в итоговом образе у нас будет всё, что есть в `openjdk:11` + файл `Main.class`.
 
 Примечание*: на самом деле из этого образа запускаем контейнер и в нём компилируем, но поскольку мы это уже обсуждали,
-дальше эти детали указывать не будем
+дальше эти детали указывать не будем.
 
 Сборка образа (поскольку мы используем тот же тег, то существующий образ просто заменится):
 
@@ -183,7 +183,7 @@ docker container run -p 9999:9999 student/tsrv:v1
 вместо `java Main` будет запущен `/bin/bash`) и с помощью команды `ls` убедиться, что никакого Main.java там больше нет.
 
 Либо можно подключиться к уже запущенному с помощью команды `docker container exec -it <container_id> /bin/bash` (
-узнать `id` можно с помощью `docker container ls`)
+узнать `id` можно с помощью `docker container ls`).
 
 ### Maven/Gradle
 
@@ -271,7 +271,7 @@ services:
 [Документация на docker-compose.yml](https://docs.docker.com/compose/compose-file/compose-file-v3/)
 
 Docker Compose хорош именно для запуска мультиконтейнерных приложений во время
-разработки ([см. статистику JetBrains](https://www.jetbrains.com/ru-ru/lp/devecosystem-2020/devops/))
+разработки ([см. статистику JetBrains](https://www.jetbrains.com/ru-ru/lp/devecosystem-2020/devops/)).
 
 ## Шаг 5. GitHub Actions & GitHub Container Registry
 
@@ -286,7 +286,7 @@ name: Build
 
 on:
   push:
-    branches: [ master ]
+    branches: [ master, main ]
 
 jobs:
   build:
@@ -308,12 +308,14 @@ jobs:
 
 **Q**: что здесь написано?
 
-**A**: что на каждый push в branch `master` мы запускаем задачу `build`, которая запускается на `ubuntu` и выполняет следующие шаги:
+**A**: что на каждый push в branch `master` (или `main`) мы запускаем задачу `build`, которая запускается на `ubuntu` и выполняет следующие шаги:
 
 1. `actions/checkout@v2` - выкачивает код из вашего репо
 1. `docker/build-push-action@v1` - собирает ваш образ и пушит его в GitHub Container Registry 
 
-**Важно**: вам нужно `coursar/tsrv` заменить на `ВАШ_ЛОГИН/ИМЯ_ОБРАЗА` (в качестве имени образа можете оставить `tsrv`)
+**Важно**: вам нужно `coursar/tsrv` заменить на `ВАШ_ЛОГИН/ИМЯ_ОБРАЗА` (в качестве имени образа можете оставить `tsrv`).
+
+**Важно**: ваш логин нужно писать в нижнем регистре.
 
 Детально с GitHub Actions мы будем разбираться позже.
 
