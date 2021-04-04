@@ -185,6 +185,56 @@ docker container run -p 9999:9999 student/tsrv:v1
 Либо можно подключиться к уже запущенному с помощью команды `docker container exec -it <container_id> /bin/bash` (
 узнать `id` можно с помощью `docker container ls`)
 
+### Maven/Gradle
+
+Для работы с Maven/Gradle ситуация аналогична, но:
+
+1\. В качестве сборочного образа берётся Docker образ Maven или Gradle:
+
+```Dockerfile
+FROM maven:3-openjdk-15-slim AS build
+WORKDIR /app/build
+COPY . .
+RUN mvn package -B
+RUN mv target/http-server-1.0-jar-with-dependencies.jar target/app.jar
+
+FROM openjdk:17-slim
+WORKDIR /app/bin
+COPY --from=build /app/build/target/app.jar .
+CMD ["java", "-jar", "app.jar"]
+```
+
+2\. Желательно сразу упаковывать всё в Uber JAR, например, в Maven с помощью Assembly Plugin:
+
+```xml
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>3.3.0</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <mainClass>tech.itpark.http.Main</mainClass>
+                        </manifest>
+                    </archive>
+                    <descriptorRefs>
+                        <descriptorRef>jar-with-dependencies</descriptorRef>
+                    </descriptorRefs>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+```
+
 ## Шаг 4. Docker Compose
 
 Конечно же, вручную каждый раз собирать/пересобирать образы и запускать контейнеры не особо удобно: т.к. придётся писать
