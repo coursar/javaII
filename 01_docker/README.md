@@ -11,7 +11,7 @@ Docker (что неудобно).
 Второй вариант позволяет публиковать публичные образы (на весь ваш аккаунт) и для доступа к ним не понадобиться
 аутентифицировать клиент (т.е. можно скачивать как публичные образы с DockerHub).
 
-## Шаг 1. Поработаем за Maven
+## Шаг 1. Поработаем за Maven/Gradle
 
 На лекции мы написали демо-приложение следующего вида:
 
@@ -115,13 +115,13 @@ CMD ["java", "Main"]
 Сборка образа:
 
 ```shell
-docker image build . -t student/tsrv:v1
+docker image build . -t student/demo:v1
 ```
 
 Запуск контейнера из образа (как раз будет запущено то, что написано в `CMD`):
 
 ```shell
-docker container run -p 9999:9999 student/tsrv:v1
+docker container run -p 9999:9999 student/demo:v1
 ```
 
 Для выхода завершения работы контейнера нажмите `Ctrl + C`, либо выполните
@@ -134,7 +134,7 @@ docker container run -p 9999:9999 student/tsrv:v1
 **Q**: чем плох полученный нами Dockerfile?
 
 **A**: тем, что в нём есть "мусор". А именно: если вы запустите
-команду `docker container run -it student/tsrv:v1 /bin/bash` и выполните команду `ls`, то у видите, что в полученном
+команду `docker container run -it student/demo:v1 /bin/bash` и выполните команду `ls`, то у видите, что в полученном
 образе хранятся и исходники. Экстраполируя это на реальные процессы сборки, мы получим, что все промежуточные файлы
 сборки + все инструменты сборки (например, тот же Maven) будут хранится в образе (а значит, и в запускаемом из образа
 контейнере, что нам совсем не нужно).
@@ -170,16 +170,16 @@ CMD ["java", "Main"]
 Сборка образа (поскольку мы используем тот же тег, то существующий образ просто заменится):
 
 ```shell
-docker image build . -t student/tsrv:v1
+docker image build . -t student/demo:v1
 ```
 
 Запуск контейнера из образа (как раз будет запущено то, что написано в `CMD`):
 
 ```shell
-docker container run -p 9999:9999 student/tsrv:v1
+docker container run -p 9999:9999 student/demo:v1
 ```
 
-Можете запустить контейнер с изменённой командой запуска: `docker container run -it student/tsrv:v1 /bin/bash` (
+Можете запустить контейнер с изменённой командой запуска: `docker container run -it student/demo:v1 /bin/bash` (
 вместо `java Main` будет запущен `/bin/bash`) и с помощью команды `ls` убедиться, что никакого Main.java там больше нет.
 
 Либо можно подключиться к уже запущенному с помощью команды `docker container exec -it <container_id> /bin/bash` (
@@ -192,13 +192,13 @@ docker container run -p 9999:9999 student/tsrv:v1
 1\. В качестве сборочного образа берётся Docker образ Maven или Gradle:
 
 ```Dockerfile
-FROM maven:3-openjdk-15-slim AS build
+FROM maven:3-openjdk-16-slim AS build
 WORKDIR /app/build
 COPY . .
 RUN mvn package -B
 RUN mv target/http-server-1.0-jar-with-dependencies.jar target/app.jar
 
-FROM openjdk:17-slim
+FROM openjdk:16-slim
 WORKDIR /app/bin
 COPY --from=build /app/build/target/app.jar .
 CMD ["java", "-jar", "app.jar"]
@@ -223,7 +223,7 @@ CMD ["java", "-jar", "app.jar"]
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>tech.itpark.http.Main</mainClass>
+                            <mainClass>mobi.coursar.http.Main</mainClass>
                         </manifest>
                     </archive>
                     <descriptorRefs>
@@ -249,7 +249,7 @@ CMD ["java", "-jar", "app.jar"]
 version: "3.7"
 services:
   backend:
-    image: student/tsrv:v1
+    image: student/demo:v1
     build: .
     ports:
       - 9999:9999
@@ -300,7 +300,7 @@ jobs:
             username: ${{ github.actor }}
             password: ${{ secrets.GHCR_TOKEN }}
             registry: ghcr.io
-            repository: coursar/tsrv
+            repository: coursar/demo
             tag_with_ref: true
 ```
 
@@ -313,7 +313,7 @@ jobs:
 1. `actions/checkout@v2` - выкачивает код из вашего репо
 1. `docker/build-push-action@v1` - собирает ваш образ и пушит его в GitHub Container Registry 
 
-**Важно**: вам нужно `coursar/tsrv` заменить на `ВАШ_ЛОГИН/ИМЯ_ОБРАЗА` (в качестве имени образа можете оставить `tsrv`).
+**Важно**: вам нужно `coursar/demo` заменить на `ВАШ_ЛОГИН/ИМЯ_ОБРАЗА` (в качестве имени образа можете оставить `demo`).
 
 **Важно**: ваш логин нужно писать в нижнем регистре.
 
